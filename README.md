@@ -39,7 +39,8 @@ Safety and Efficiency Features
     File Safety Checks: Ensures that only new and safe PDFs are downloaded and stored.
     User Feedback: Provides real-time updates on the script's progress and actions.
 
-![image](https://github.com/wyzed/PDFunter/assets/1706569/56badaf6-a875-4777-b5ea-6629678836e8)
+![image](https://github.com/wyzed/PDFunter/assets/1706569/0e4d43c7-e9b7-4fd4-aecf-9dd071194e41)
+
 
 
     
