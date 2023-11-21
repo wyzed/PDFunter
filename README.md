@@ -1,5 +1,5 @@
 # PDFunter
-PDFunter is a Python script designed to automate the process of finding and downloading PDF files from a specified website.  It uses Selenium WebDriver to navigate the website and search for PDF files based on a user-defined query.
+PDFunter is a Python script designed to automate the process of finding and downloading PDF files from a specified website. It uses Selenium WebDriver to navigate the website and search for PDF files based on a user-defined query.
 
 Automates the process of finding and downloading PDF files from a specified website. Technology: Uses Selenium for web scraping, PyPDF2 for PDF processing.
 
@@ -30,11 +30,13 @@ Initialization: Sets up browser options for Selenium and defines the main websit
         Implements rate limiting to control the number of requests sent to the server.
         Randomizes intervals between requests and the maximum number of requests before a longer wait.
 
-Usage
+Usage :
     Run the script and enter a search query when prompted.
     The script will automatically handle the searching, downloading, and processing of PDF files.
 
-Safety and Efficiency Features
+     $ python PDFunterv1.py
+
+Safety and Efficiency Features :
     Rate Limiting: Prevents server overload and potential IP blocking.
     File Safety Checks: Ensures that only new and safe PDFs are downloaded and stored.
     User Feedback: Provides real-time updates on the script's progress and actions.
