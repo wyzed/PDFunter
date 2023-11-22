@@ -179,6 +179,7 @@ def download_pdf(url, file_name):
     sanitized_name = sanitize_filename(name)
     sanitized_file_name = sanitized_name + ext
     file_path = os.path.join(download_dir, sanitized_file_name)
+
     if safe_file_exists(sanitized_file_name, download_dir):
         return False
 
@@ -189,27 +190,30 @@ def download_pdf(url, file_name):
             with open(temp_file_path, 'wb') as file:
                 file.write(response.content)
 
-            if contains_embedded_files(temp_file_path):
-                print(custom_prompt + f"Warning: PDF contains embedded files, skipping download: {sanitized_file_name}")
-                if os.path.exists(temp_file_path):
+            try:
+                if contains_embedded_files(temp_file_path):
+                    print(custom_prompt + f"Warning: PDF contains embedded files, skipping download: {sanitized_file_name}")
                     os.remove(temp_file_path)
-                return False
+                    return False
 
-            safe_file_path = os.path.join(download_dir, 'safe_' + sanitized_file_name)
-            if not safer_pdf(temp_file_path, safe_file_path):
-                if os.path.exists(temp_file_path):
+                safe_file_path = os.path.join(download_dir, 'safe_' + sanitized_file_name)
+                if not safer_pdf(temp_file_path, safe_file_path):
                     os.remove(temp_file_path)  # Delete the original file if it cannot be made safer
-                return False
+                    return False
 
-            if os.path.exists(temp_file_path):
                 os.remove(temp_file_path)  # Delete the original file after making it "safer"
-            return True
+                return True
+            except PyPDF2.errors.PdfReadError as e:
+                print(custom_prompt + f"PDF processing error: {e}. Skipping file: {sanitized_file_name}")
+                os.remove(temp_file_path)
+                return False
         else:
-            print(custom_prompt + f"Failed to download: {url}")
+            print(custom_prompt + f"Failed to download: {url} (HTTP status: {response.status_code})")
             return False
     except requests.RequestException as e:
         print(custom_prompt + f"Error during download: {e}")
         return False
+
 
 
 def main():
