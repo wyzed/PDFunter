@@ -41,7 +41,7 @@ def is_valid_url(url):
 
 def get_website_url():
     while True:
-        url = input("Enter the website URL: ").strip()
+        url = input(custom_prompt + f"Enter the website URL: ").strip()
         if is_valid_url(url):
             return url
         else:
@@ -49,7 +49,7 @@ def get_website_url():
 
 main_website_url = get_website_url()
 search_box_id = 'search_text'
-search_query = input("Enter your search query (e.g., '*.pdf'): ")
+search_query = input(custom_prompt + f"Enter your search query (e.g., '*.pdf'): ")
 
 REQUEST_INTERVAL = random.randint(1, 3)
 MAX_REQUESTS = random.randint(5, 10)
@@ -62,7 +62,9 @@ def sanitize_filename(file_name):
     return sanitized_name
 
 def safe_file_exists(file_name, download_dir):
-    sanitized_file_name = sanitize_filename(file_name)
+    decoded_file_name = urllib.parse.unquote(file_name)
+    truncated_name = truncate_filename(decoded_file_name)
+    sanitized_file_name = sanitize_filename(truncated_name)
     safe_file_name = 'safe_' + sanitized_file_name
     safe_file_path = os.path.join(download_dir, safe_file_name)
     return os.path.exists(safe_file_path)
@@ -106,7 +108,7 @@ def check_all_files_safer(download_dir):
 
     for file in all_files:
         if file.startswith('safe_'):
-            continue  # Skip already processed files
+            continue
 
         file_path = os.path.join(download_dir, file)
         if file.endswith('.temp'):
@@ -173,9 +175,9 @@ def truncate_filename(filename, max_length=250):
 def download_pdf(url, file_name):
     download_dir = os.path.join(os.getcwd(), 'downloads')
     os.makedirs(download_dir, exist_ok=True)
-    file_name = urllib.parse.unquote(file_name)
-    file_name = truncate_filename(file_name)
-    name, ext = os.path.splitext(file_name)
+    decoded_file_name = urllib.parse.unquote(file_name)
+    truncated_name = truncate_filename(decoded_file_name)
+    name, ext = os.path.splitext(truncated_name)
     sanitized_name = sanitize_filename(name)
     sanitized_file_name = sanitized_name + ext
     file_path = os.path.join(download_dir, sanitized_file_name)
@@ -198,17 +200,17 @@ def download_pdf(url, file_name):
 
                 safe_file_path = os.path.join(download_dir, 'safe_' + sanitized_file_name)
                 if not safer_pdf(temp_file_path, safe_file_path):
-                    os.remove(temp_file_path)  # Delete the original file if it cannot be made safer
+                    os.remove(temp_file_path)
                     return False
 
-                os.remove(temp_file_path)  # Delete the original file after making it "safer"
+                os.remove(temp_file_path)
                 return True
             except PyPDF2.errors.PdfReadError as e:
-                print(custom_prompt + f"PDF processing error: {e}. Skipping file: {sanitized_file_name}")
+                print(custom_prompt + f"PDF processing error: {e}. Skipping file: {decoded_file_name}")
                 os.remove(temp_file_path)
                 return False
         else:
-            print(custom_prompt + f"Failed to download: {url} (HTTP status: {response.status_code})")
+            print(custom_prompt + f"Failed to download: {decoded_file_name} (HTTP status: {response.status_code})")
             return False
     except requests.RequestException as e:
         print(custom_prompt + f"Error during download: {e}")
@@ -217,19 +219,16 @@ def download_pdf(url, file_name):
 
 
 def main():
-    MAX_REQUESTS = random.randint(5, 10)
-    LONG_WAIT = random.randint(5, 10)
     print(custom_prompt + "Performing Selenium-based search for PDFs...")
+    MAX_REQUESTS = random.randint(5, 10)
+    LONG_WAIT = random.randint(4, 8)
     pdf_links = get_pdf_links_with_selenium(main_website_url, search_box_id, search_query)
-
     download_dir = os.path.join(os.getcwd(), 'downloads')
     os.makedirs(download_dir, exist_ok=True)
-
     already_downloaded_count = sum(safe_file_exists(link.split('/')[-1], download_dir) for link in pdf_links)
     new_pdf_links = [link for link in pdf_links if not safe_file_exists(link.split('/')[-1], download_dir)]
-
-    total_files = len(pdf_links)  # Total files include both new and already downloaded
-    new_files_count = len(new_pdf_links)  # Count of new files to download
+    total_files = len(pdf_links)
+    new_files_count = len(new_pdf_links)
 
     print(custom_prompt + f"Total PDF files found: {total_files}")
     print(custom_prompt + f"New PDF files to download: {new_files_count}")
@@ -245,7 +244,7 @@ def main():
 
             download_attempted = download_pdf(link, file_name)
             if download_attempted:
-                overall_pbar.update(1)  # Update overall progress bar for new downloads
+                overall_pbar.update(1)
                 request_count += 1
                 if request_count >= MAX_REQUESTS:
                     update_message(f"Reached {MAX_REQUESTS} requests, waiting for {LONG_WAIT} seconds...")
