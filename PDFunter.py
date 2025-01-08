@@ -49,7 +49,9 @@ def get_website_url():
 
 main_website_url = get_website_url()
 search_box_id = 'search_text'
-search_query = input(custom_prompt + f"Enter your search query (e.g., '*.pdf'): ")
+search_query = input(custom_prompt + "Enter your search query (e.g., '*.pdf'): ").strip()
+if not search_query:
+    search_query = "*.pdf"
 
 REQUEST_INTERVAL = random.randint(1, 3)
 MAX_REQUESTS = random.randint(5, 10)
@@ -135,6 +137,7 @@ def check_all_files_safer(download_dir):
 download_dir = os.path.join(os.getcwd(), 'downloads')
 check_all_files_safer(download_dir)
 
+
 def get_pdf_links_with_selenium(url, search_box_id, search_query):
     driver = webdriver.Firefox(options=options)
     driver.get(url)
@@ -144,24 +147,37 @@ def get_pdf_links_with_selenium(url, search_box_id, search_query):
 
     try:
         try:
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, search_box_id)))
-            search_box = driver.find_element(By.ID, search_box_id)
+            # Attempt to find and use the search box
+            search_box_xpath = f"//input[contains(@id, '{search_box_id}') or contains(@class, '{search_box_id}')]"
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, search_box_xpath)))
+            search_box = driver.find_element(By.XPATH, search_box_xpath)
             search_box.send_keys(search_query)
             search_box.send_keys(Keys.RETURN)
             WebDriverWait(driver, 10).until(lambda d: d.execute_script('return document.readyState') == 'complete')
             search_box_found = True
         except TimeoutException:
-            print(custom_prompt + "Search box not found or timeout occurred. Scanning page for links.")
+            print("Search box not found or timeout occurred. Scanning page for links.")
 
+        # Finding and processing PDF links
         for link in driver.find_elements(By.TAG_NAME, 'a'):
             href = link.get_attribute('href')
-            if href and (href.lower().endswith('.pdf') or (not search_box_found and search_query in href)):
-                pdf_links.append(href)
+            if href:
+                # Check for direct PDF links or arXiv pattern
+                if href.lower().endswith('.pdf') or ('arxiv.org/pdf/' in href and 'arxiv.org' in url):
+                    if 'arxiv.org/pdf/' in href and not href.lower().endswith('.pdf'):
+                        href += '.pdf'  # Append '.pdf' for arXiv links
+                    pdf_links.append(href)
+
+    except TimeoutException:
+        print("Timeout occurred - either the page did not load properly.")
 
     finally:
         driver.quit()
 
     return pdf_links
+
+
+
 
 def truncate_filename(filename, max_length=250):
     """ Truncate the filename to a specified maximum length """
