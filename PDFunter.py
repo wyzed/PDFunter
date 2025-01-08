@@ -10,11 +10,10 @@ from tqdm import tqdm
 from colorama import Fore, Style
 import PyPDF2
 
-custom_prompt = f"{Fore.LIGHTGREEN_EX}PDFunter@local:{Style.RESET_ALL}{Fore.BLUE}~{Style.RESET_ALL}$ "
 options = Options() 
 options.add_argument("-headless") 
 
-
+custom_prompt = f"{Fore.LIGHTGREEN_EX}PDFunter@local:{Style.RESET_ALL}{Fore.BLUE}~{Style.RESET_ALL}$ "
 script_description = """
 PDFunter is a Python script designed to automate the process of finding and downloading PDF files from a specified website. 
 It uses Selenium WebDriver to navigate the website and search for PDF files based on a user-defined query.
@@ -29,7 +28,6 @@ How it works:
 
 To use PDFunter, simply run the script and enter your search query when prompted.
 """
-
 print(custom_prompt + script_description)
 
 def is_valid_url(url):
